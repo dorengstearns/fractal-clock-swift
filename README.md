@@ -5,6 +5,10 @@ A modernized, Apple Silicon-compatible recreation of the classic Mac screensaver
 ## Overview
 This project is a complete rewrite of the original 2007 Objective-C/OpenGL code into Swift and CoreGraphics. It preserves the original fractal architecture while ensuring high-performance, native execution on modern macOS.
 
+## Download
+You can download the latest version of the screensaver directly:
+👉 [**Download FractalClock.saver.zip**](FractalClock.saver.zip)
+
 ## Features
 - **Modern Swift:** Rebuilt from the ground up using Swift and `ScreenSaverView`.
 - **CoreGraphics Rendering:** Replaces legacy OpenGL with CPU-optimized vector geometry.
