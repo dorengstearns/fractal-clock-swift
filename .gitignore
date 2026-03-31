@@ -16,3 +16,7 @@ DerivedData/
 # Executables
 main
 FractalClockTestApp
+
+# Tooling
+xcodegen/
+xcodegen.zip
