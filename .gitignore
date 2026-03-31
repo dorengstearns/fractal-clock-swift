@@ -1,0 +1,18 @@
+# macOS
+.DS_Store
+
+# Build products
+*.saver
+*.xcodeproj
+*.xcworkspace
+build/
+DerivedData/
+
+# Object files
+*.o
+*.dylib
+*.a
+
+# Executables
+main
+FractalClockTestApp

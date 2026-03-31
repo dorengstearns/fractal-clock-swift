@@ -1,0 +1,21 @@
+name: FractalClockNew
+options:
+  bundleIdPrefix: com.dqd.screensaver
+targets:
+  FractalClockNew:
+    type: bundle
+    platform: macOS
+    sources: [Sources]
+    info:
+      path: Info.plist
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.dqd.screensaver.FractalClock
+        WRAPPER_EXTENSION: saver
+        MACOSX_DEPLOYMENT_TARGET: "12.0"
+        GENERATE_INFOPLIST_FILE: NO
+        MACH_O_TYPE: mh_bundle
+        SWIFT_VERSION: "5.0"
+        ARCHS: "x86_64 arm64"
+    dependencies:
+      - sdk: ScreenSaver.framework
