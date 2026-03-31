@@ -1,6 +1,6 @@
 # Fractal Clock
 
-A sleek, modernized recreation of the 2007 classic Mac Screensaver, brought up to speed for Apple Silicon.
+A modernized recreation of the 2007 classic Mac Screensaver, brought up to speed for Apple Silicon.
 
 ## Overview
 This project completely rewrites the legacy immediate-mode OpenGL mathematical renderer (`glBegin`, `glEnd`) from its roots in a 2007 Objective-C screensaver package. The completely modernized codebase translates the fractal architecture to Swift utilizing the CPU-optimized vector curves of Apple's `CoreGraphics` library (`CGContext`), effectively securing the beautiful fractal animation to run effortlessly on the newest generations of macOS and Apple Silicon Processors. 
