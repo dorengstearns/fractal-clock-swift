@@ -1,23 +1,22 @@
-# Fractal Clock
+# Fractal Clock (Swift)
 
-A modernized recreation of the 2007 classic Mac Screensaver, brought up to speed for Apple Silicon.
+A modernized, Apple Silicon-compatible recreation of the classic Mac screensaver originally created by [DQD](https://www.dqd.com/programs/FractalClock/).
 
 ## Overview
-This project completely rewrites the legacy immediate-mode OpenGL mathematical renderer (`glBegin`, `glEnd`) from its roots in a 2007 Objective-C screensaver package. The completely modernized codebase translates the fractal architecture to Swift utilizing the CPU-optimized vector curves of Apple's `CoreGraphics` library (`CGContext`), effectively securing the beautiful fractal animation to run effortlessly on the newest generations of macOS and Apple Silicon Processors. 
+This project is a complete rewrite of the original 2007 Objective-C/OpenGL code into Swift and CoreGraphics. It preserves the original fractal architecture while ensuring high-performance, native execution on modern macOS.
 
 ## Features
-- **Fractal Generation:** Deep vector geometry and recursive branch mathematics that scale in size seamlessly across 11 synchronized dimension layers based on real-world UNIX epoch time data. 
-- **Modern Screensaver Core:** Constructed into a modern `.saver` plugin wrapper utilizing `@objc` bindings and Swift `ScreenSaverView` endpoints, fully respecting modern macOS Legacy Sandboxing parameters and system settings displays.
-- **Dependency Free:** Fully decoupled from messy intermediate Xcode project configurations. Recompiled and code-signed perfectly via our lightweight standalone Command Line `Makefile` and standard Terminal `swiftc`. 
+- **Modern Swift:** Rebuilt from the ground up using Swift and `ScreenSaverView`.
+- **CoreGraphics Rendering:** Replaces legacy OpenGL with CPU-optimized vector geometry.
+- **Apple Silicon Native:** Fully compatible with ARM64 and Intel architectures.
+- **Dependency Free:** Built using a simple `Makefile` and standard system tools.
 
 ## Installation
-
-Run the build configuration in your terminal via:
+Build the screensaver via:
 ```bash
 make
 ```
+Double-click `FractalClockAbsolute.saver` to install it into macOS System Settings.
 
-Double click the generated `FractalClockAbsolute.saver` output bundle from your file browser. `macOS System Settings` will automatically mount the plugin. 
-
-## Special Notes
-Older implementations attempted to dynamically benchmark System FPS processing speeds per-frame to dynamically truncate fractal lengths for weaker 16-bit processing architectures. We have completely deleted these legacy bottlenecks as the IPC wrapper latency found via System Settings sandboxing artificially depressed the theoretical load score. Our solution trusts modern CoreGraphics drawing and hardcodes a beautiful 11-layered geometric progression matrix.
+## Credits
+Original implementation and concept by [DQD - Fractal Clock](https://www.dqd.com/programs/FractalClock/).
