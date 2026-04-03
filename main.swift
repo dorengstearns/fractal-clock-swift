@@ -3,8 +3,7 @@ import ScreenSaver
 
 class AppDelegate: NSObject, NSApplicationDelegate {
     var window: NSWindow!
-    var clockView: FractalClockView!
-    var timer: Timer!
+    var clockView: FractalClockAbsoluteView!
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         window = NSWindow(
@@ -16,17 +15,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         window.center()
         window.title = "Fractal Clock Test"
         
-        clockView = FractalClockView(frame: window.contentView!.bounds, isPreview: false)
+        clockView = FractalClockAbsoluteView(frame: window.contentView!.bounds, isPreview: false)
         clockView.autoresizingMask = [.width, .height]
         window.contentView?.addSubview(clockView)
         
         window.makeKeyAndOrderFront(nil)
         
         clockView.startAnimation()
-        
-        timer = Timer.scheduledTimer(withTimeInterval: clockView.animationTimeInterval, repeats: true) { _ in
-            self.clockView.animateOneFrame()
-        }
     }
 }
 

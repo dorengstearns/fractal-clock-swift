@@ -7,6 +7,12 @@ class FractalClockAbsoluteView: ScreenSaverView {
         var cos: CGFloat
         var sin: CGFloat
     }
+
+    struct Color {
+        var r: CGFloat
+        var g: CGFloat
+        var b: CGFloat
+    }
     
     let framesPerSecond = 30.0
     let colorAdjustment: CGFloat = 0.85
@@ -15,28 +21,37 @@ class FractalClockAbsoluteView: ScreenSaverView {
     var accumulatedSeconds: TimeInterval = 0
     var accumulatedFrames: Int = 0
     var framesBetweenDepthChanges: Double = 30.0
-    var targetDepth: Int = 4
+    var targetDepth: Int = 11
     
     var lastFrameTime: TimeInterval = 0
     var totalPixelCount: CGFloat = 0
     
-
+    private var alphaCache: [CGFloat] = []
 
     override init?(frame: NSRect, isPreview: Bool) {
         super.init(frame: frame, isPreview: isPreview)
-        self.animationTimeInterval = 1.0 / framesPerSecond
-        self.lastFrameTime = Date.timeIntervalSinceReferenceDate
+        setup()
     }
     
     required init?(coder: NSCoder) {
         super.init(coder: coder)
+        setup()
+    }
+
+    private func setup() {
         self.animationTimeInterval = 1.0 / framesPerSecond
         self.lastFrameTime = Date.timeIntervalSinceReferenceDate
+        
+        // Precalculate alphas to avoid 'pow' calls in the hot loop
+        alphaCache = (0...maxDepth).map { d in
+            if d == 0 { return 1.0 }
+            return CGFloat(pow(Double(d), -1.0))
+        }
     }
     
     override func startAnimation() {
         super.startAnimation()
-        targetDepth = 4
+        targetDepth = isPreview ? 8 : 11
         framesBetweenDepthChanges = framesPerSecond
         accumulatedFrames = 0
         accumulatedSeconds = 0
@@ -57,12 +72,6 @@ class FractalClockAbsoluteView: ScreenSaverView {
         let startTime = Date.timeIntervalSinceReferenceDate
         accumulatedFrames += 1
         
-        // Remove dynamic framerate profiling completely, as MacOS ScreenSaver engine overhead
-        // causes false positives and drastically shrinks the fractal incorrectly.
-        // Hardcode the target depth to 11.
-        targetDepth = 11
-
-        
         // Background
         context.setFillColor(NSColor.black.cgColor)
         context.fill(bounds)
@@ -71,13 +80,13 @@ class FractalClockAbsoluteView: ScreenSaverView {
         let (root, r0, r1) = getRootAndRotators(isPreview: isPreview, bounds: bounds)
         
         context.setLineWidth(2.0)
-        context.setLineCap(.round)
+        context.setLineCap(.butt) // Faster than .round and usually looks fine for fractals
         context.setBlendMode(.normal)
         
-        let rootColor: [CGFloat] = [1.0, 1.0, 1.0]
-        drawBranch(context: context, line: root, r0: r0, r1: r1, depth: 0, depthLeft: targetDepth, color: rootColor)
+        let rootColor = Color(r: 1.0, g: 1.0, b: 1.0)
+        drawBranch(context: context, origin: root.origin, vector: root.size, r0: r0, r1: r1, depth: 0, depthLeft: targetDepth, color: rootColor)
         
-        // Accumulate exactly how long drawing took to compute maximum theoretical FPS
+        // Accumulate exactly how long drawing took
         let drawDuration = Date.timeIntervalSinceReferenceDate - startTime
         accumulatedSeconds += drawDuration
     }
@@ -121,35 +130,44 @@ class FractalClockAbsoluteView: ScreenSaverView {
         return (root, r0, r1)
     }
     
-    private func drawBranch(context: CGContext, line: NSRect, r0: Rotator, r1: Rotator, depth: Int, depthLeft: Int, color: [CGFloat]) {
-        let p2 = CGPoint(x: line.origin.x + line.size.width, y: line.origin.y + line.size.height)
+    private func drawBranch(context: CGContext, origin: CGPoint, vector: CGSize, r0: Rotator, r1: Rotator, depth: Int, depthLeft: Int, color: Color) {
+        let p2 = CGPoint(x: origin.x + vector.width, y: origin.y + vector.height)
         
+        // Optimization: Prune branches that are too small to be meaningful
+        // Using a squared length for faster comparison
+        let lengthSq = vector.width * vector.width + vector.height * vector.height
+        if lengthSq < 0.25 { // Half a pixel
+            return
+        }
+
         if depthLeft >= 1 {
-            var newLine = NSRect(origin: p2, size: .zero)
+            // Left branch
+            let colorLeft = Color(
+                r: colorAdjustment * color.r,
+                g: 0.92 * color.g,
+                b: 0.1 + colorAdjustment * color.b
+            )
+            let vectorLeft = rotateSize(rotator: r0, s0: vector)
+            drawBranch(context: context, origin: p2, vector: vectorLeft, r0: r0, r1: r1, depth: depth + 1, depthLeft: depthLeft - 1, color: colorLeft)
             
-            var newColorLeft = color
-            newColorLeft[1] = 0.92 * color[1]
-            newLine.size = rotateSize(rotator: r0, s0: line.size)
-            newColorLeft[0] = colorAdjustment * color[0]
-            newColorLeft[2] = 0.1 + colorAdjustment * color[2]
-            drawBranch(context: context, line: newLine, r0: r0, r1: r1, depth: depth + 1, depthLeft: depthLeft - 1, color: newColorLeft)
-            
-            var newColorRight = color
-            newColorRight[1] = 0.92 * color[1]
-            newLine.size = rotateSize(rotator: r1, s0: line.size)
-            newColorRight[0] = 0.1 + colorAdjustment * color[0]
-            newColorRight[2] = colorAdjustment * color[2]
-            drawBranch(context: context, line: newLine, r0: r0, r1: r1, depth: depth + 1, depthLeft: depthLeft - 1, color: newColorRight)
+            // Right branch
+            let colorRight = Color(
+                r: 0.1 + colorAdjustment * color.r,
+                g: 0.92 * color.g,
+                b: colorAdjustment * color.b
+            )
+            let vectorRight = rotateSize(rotator: r1, s0: vector)
+            drawBranch(context: context, origin: p2, vector: vectorRight, r0: r0, r1: r1, depth: depth + 1, depthLeft: depthLeft - 1, color: colorRight)
         }
         
-        let alpha = depth == 0 ? 1.0 : pow(Double(depth), -1.0)
-        context.setStrokeColor(red: color[0], green: color[1], blue: color[2], alpha: CGFloat(alpha))
+        let alpha = alphaCache[min(depth, maxDepth)]
+        context.setStrokeColor(red: color.r, green: color.g, blue: color.b, alpha: alpha)
         
         context.beginPath()
         if depth == 0 {
-            context.move(to: CGPoint(x: line.origin.x + line.size.width * 0.5, y: line.origin.y + line.size.height * 0.5))
+            context.move(to: CGPoint(x: origin.x + vector.width * 0.5, y: origin.y + vector.height * 0.5))
         } else {
-            context.move(to: line.origin)
+            context.move(to: origin)
         }
         context.addLine(to: p2)
         context.strokePath()
